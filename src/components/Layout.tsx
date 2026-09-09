@@ -1,27 +1,34 @@
 import { type ReactNode, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, LogOut, Menu, X, Bookmark, LayoutGrid, UserCog, PlusCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import type { Role } from '@/types';
 
 interface NavItem {
   to: string;
   label: string;
   icon: typeof BookOpen;
+  roles?: Role[];
 }
 
 const navItems: NavItem[] = [
   { to: '/catalog', label: 'Catalog', icon: LayoutGrid },
-  { to: '/reservations', label: 'My Reservations', icon: Bookmark },
-  { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle },
-  { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen },
-  { to: '/admin', label: 'Promote User', icon: UserCog },
+  { to: '/reservations', label: 'My Reservations', icon: Bookmark, roles: ['BORROWER', 'LIBRARIAN', 'ADMIN'] },
+  { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle, roles: ['LIBRARIAN', 'ADMIN'] },
+  { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen, roles: ['LIBRARIAN', 'ADMIN'] },
+  { to: '/admin', label: 'Promote User', icon: UserCog, roles: ['ADMIN'] },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasRole, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const visibleNavItems = navItems.filter((item) => !item.roles || hasRole(...item.roles));
+
   const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
@@ -38,7 +45,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </NavLink>
 
             <nav className="hidden items-center gap-1 md:flex">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
@@ -90,7 +97,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {mobileOpen && (
           <nav className="border-t border-paper-200 bg-paper-50 px-4 py-3 md:hidden animate-[slideDown_150ms_ease-out]">
             <div className="space-y-1">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink

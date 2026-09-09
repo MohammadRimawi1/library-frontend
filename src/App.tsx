@@ -115,7 +115,7 @@ function AppRoutes() {
       <Route
         path="/reservations"
         element={
-          <ProtectedRoute roles={['BORROWER']}>
+          <ProtectedRoute roles={['BORROWER', 'LIBRARIAN', 'ADMIN']}>
             <MyReservationsPage />
           </ProtectedRoute>
         }
@@ -123,7 +123,7 @@ function AppRoutes() {
       <Route
         path="/librarian/items/new"
         element={
-          <ProtectedRoute roles={['LIBRARIAN']}>
+          <ProtectedRoute roles={['LIBRARIAN', 'ADMIN']}>
             <CreateItemPage />
           </ProtectedRoute>
         }
@@ -131,7 +131,7 @@ function AppRoutes() {
       <Route
         path="/librarian/reservations"
         element={
-          <ProtectedRoute roles={['LIBRARIAN']}>
+          <ProtectedRoute roles={['LIBRARIAN', 'ADMIN']}>
             <LibrarianReservationsPage />
           </ProtectedRoute>
         }
