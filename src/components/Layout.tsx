@@ -16,7 +16,7 @@ const navItems: NavItem[] = [
   { to: '/reservations', label: 'My Reservations', icon: Bookmark, roles: ['BORROWER', 'LIBRARIAN', 'ADMIN'] },
   { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle, roles: ['LIBRARIAN', 'ADMIN'] },
   { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen, roles: ['LIBRARIAN', 'ADMIN'] },
-  { to: '/admin', label: 'Promote User', icon: UserCog, roles: ['ADMIN'] },
+  { to: '/admin', label: 'Promote & Demote User', icon: UserCog, roles: ['ADMIN'] },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
