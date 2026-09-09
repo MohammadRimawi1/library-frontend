@@ -6,7 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CatalogPage } from '@/pages/CatalogPage';
 import { ItemDetailPage } from '@/pages/ItemDetailPage';
-import MyReservationsPage from './pages/MyReservationsPage';
+import { MyReservationsPage } from '@/pages/MyReservationsPage';
 import CreateItemPage from './pages/CreateItemPage';
 import LibrarianReservationsPage from './pages/LibrarianReservationsPage';
 import AdminPage from './pages/AdminPage';
