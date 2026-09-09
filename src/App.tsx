@@ -9,7 +9,7 @@ import { ItemDetailPage } from '@/pages/ItemDetailPage';
 import { MyReservationsPage } from '@/pages/MyReservationsPage';
 import { CreateItemPage } from '@/pages/CreateItemPage';
 import { LibrarianReservationsPage } from '@/pages/LibrarianReservationsPage';
-import AdminPage from './pages/AdminPage';
+import { AdminPage } from '@/pages/AdminPage';
 import type { Role } from '@/types';
 
 
