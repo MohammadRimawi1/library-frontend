@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, LogOut, Menu, X, Bookmark, LayoutGrid, UserCog, PlusCircle } from 'lucide-react';
+import { BookOpen, LogOut, Menu, X, Bookmark, LayoutGrid, UserCog, PlusCircle, Users, UserX } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import type { Role } from '@/types';
 
@@ -12,11 +12,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/catalog', label: 'Catalog', icon: LayoutGrid },
-  { to: '/reservations', label: 'My Reservations', icon: Bookmark, roles: ['BORROWER', 'LIBRARIAN', 'ADMIN'] },
-  { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle, roles: ['LIBRARIAN', 'ADMIN'] },
-  { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen, roles: ['LIBRARIAN', 'ADMIN'] },
-  { to: '/admin', label: 'Promote & Demote User', icon: UserCog, roles: ['ADMIN'] },
+  { to: '/catalog', label: 'Catalog', icon: LayoutGrid, roles: ['BORROWER', 'LIBRARIAN'] },
+  { to: '/reservations', label: 'My Reservations', icon: Bookmark, roles: ['BORROWER'] },
+  { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle, roles: ['LIBRARIAN'] },
+  { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen, roles: ['LIBRARIAN'] },
+  { to: '/admin', label: 'Promote & Demote', icon: UserCog, roles: ['ADMIN'] },
+  { to: '/admin/users', label: 'All Users', icon: Users, roles: ['ADMIN'] },
+  { to: '/admin/delete', label: 'Delete User', icon: UserX, roles: ['ADMIN'] },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

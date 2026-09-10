@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { UserCog, Search, ArrowUpCircle, ArrowDownCircle, User as UserIcon } from 'lucide-react';
 import { api, ApiRequestError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -9,31 +9,6 @@ import { EmptyState, LoadingState } from '@/components/ui/States';
 import type { User } from '@/types';
 
 export function AdminPage() {
-  // --- browse/search all users ---
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [listLoading, setListLoading] = useState(false);
-  const [listError, setListError] = useState<string | null>(null);
-  const [filterText, setFilterText] = useState('');
-
-  useEffect(() => {
-    setListLoading(true);
-    setListError(null);
-    api
-      .get<User[]>('/admin/users')
-      .then(setAllUsers)
-      .catch(() => setListError('Unable to load users.'))
-      .finally(() => setListLoading(false));
-  }, []);
-
-  const filteredUsers = useMemo(() => {
-    const q = filterText.trim().toLowerCase();
-    if (!q) return allUsers;
-    return allUsers.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }, [allUsers, filterText]);
-
-  // --- search by ID + promote/demote ---
   const [searchId, setSearchId] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,12 +57,10 @@ export function AdminPage() {
       if (confirmAction === 'promote') {
         await api.patch(`/admin/users/${user.id}/promote-to-librarian`);
         setUser({ ...user, role: 'LIBRARIAN' });
-        setAllUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role: 'LIBRARIAN' } : u)));
         setActionSuccess(`${user.name} has been promoted to Librarian.`);
       } else {
         await api.patch(`/admin/users/${user.id}/demote-to-borrower`);
         setUser({ ...user, role: 'BORROWER' });
-        setAllUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role: 'BORROWER' } : u)));
         setActionSuccess(`${user.name} has been demoted to Borrower.`);
       }
       setConfirmAction(null);
@@ -115,66 +88,11 @@ export function AdminPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-ink-800">Promote / Demote User</h1>
         <p className="mt-1 text-sm text-ink-400">
-          Browse users below to find their ID, then look them up to promote or demote their role.
+          Look up a user by their user ID to promote them to librarian or demote them back to borrower.
+          Don't have the ID? Check the "All Users" page.
         </p>
       </div>
 
-      {/* Browse all users */}
-      <Card className="mb-6">
-        <CardBody>
-          <label htmlFor="filterUsers" className="mb-1 block text-sm font-medium text-ink-700">
-            Browse users
-          </label>
-          <div className="relative mb-3">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-            <input
-              id="filterUsers"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-              className="input-field pl-10"
-              placeholder="Filter by name or email…"
-            />
-          </div>
-
-          {listLoading && <LoadingState message="Loading users…" />}
-          {listError && <Alert variant="error">{listError}</Alert>}
-
-          {!listLoading && !listError && (
-            <div className="max-h-72 overflow-y-auto rounded-lg border border-paper-200">
-              {filteredUsers.length === 0 ? (
-                <p className="p-4 text-sm text-ink-400">No users match this filter.</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-paper-100 text-left text-xs font-semibold text-ink-500">
-                    <tr>
-                      <th className="px-3 py-2">Name</th>
-                      <th className="px-3 py-2">Email</th>
-                      <th className="px-3 py-2">Role</th>
-                      <th className="px-3 py-2">ID</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((u) => (
-                      <tr key={u.id} className="border-t border-paper-200">
-                        <td className="px-3 py-2 text-ink-700">{u.name}</td>
-                        <td className="px-3 py-2 text-ink-500">{u.email}</td>
-                        <td className="px-3 py-2">
-                          <span className="inline-flex items-center rounded-full bg-ink-100 px-2 py-0.5 text-xs font-semibold text-ink-600">
-                            {u.role}
-                          </span>
-                        </td>
-                        <td className="select-all px-3 py-2 font-mono text-xs text-ink-500">{u.id}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* Search by ID */}
       <Card className="mb-6">
         <CardBody>
           <div className="space-y-1">
@@ -208,7 +126,6 @@ export function AdminPage() {
         </CardBody>
       </Card>
 
-      {/* Result */}
       {loading && <LoadingState message="Looking up user…" />}
 
       {user && (
@@ -270,11 +187,10 @@ export function AdminPage() {
         <EmptyState
           icon={<UserCog className="h-12 w-12" />}
           title="Search for a user"
-          description="Copy an ID from the list above, then paste it in the search box to promote or demote."
+          description="Paste a user ID above to look up a user and promote or demote their role."
         />
       )}
 
-      {/* Confirmation modal */}
       <Modal
         open={confirmAction !== null}
         onClose={() => setConfirmAction(null)}

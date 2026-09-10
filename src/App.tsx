@@ -10,8 +10,14 @@ import { MyReservationsPage } from '@/pages/MyReservationsPage';
 import { CreateItemPage } from '@/pages/CreateItemPage';
 import { LibrarianReservationsPage } from '@/pages/LibrarianReservationsPage';
 import { AdminPage } from '@/pages/AdminPage';
+import { AdminUsersPage } from '@/pages/AdminUsersPage';
+import { DeleteUserPage } from '@/pages/DeleteUserPage';
 import type { Role } from '@/types';
 
+function homePathFor(role: Role | undefined): string {
+  if (role === 'ADMIN') return '/admin';
+  return '/catalog';
+}
 
 function ProtectedRoute({
   children,
@@ -20,7 +26,7 @@ function ProtectedRoute({
   children: ReactNode;
   roles?: Role[];
 }) {
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, hasRole, user } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -28,16 +34,16 @@ function ProtectedRoute({
   }
 
   if (roles && !hasRole(...roles)) {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to={homePathFor(user?.role)} replace />;
   }
 
   return <Layout>{children}</Layout>;
 }
 
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to="/catalog" replace />;
+    return <Navigate to={homePathFor(user?.role)} replace />;
   }
   return <>{children}</>;
 }
@@ -77,6 +83,11 @@ function SessionGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function HomeRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={homePathFor(user?.role)} replace />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -99,7 +110,7 @@ function AppRoutes() {
       <Route
         path="/catalog"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute roles={['BORROWER', 'LIBRARIAN']}>
             <CatalogPage />
           </ProtectedRoute>
         }
@@ -107,7 +118,7 @@ function AppRoutes() {
       <Route
         path="/catalog/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute roles={['BORROWER', 'LIBRARIAN']}>
             <ItemDetailPage />
           </ProtectedRoute>
         }
@@ -115,7 +126,7 @@ function AppRoutes() {
       <Route
         path="/reservations"
         element={
-          <ProtectedRoute roles={['BORROWER', 'LIBRARIAN', 'ADMIN']}>
+          <ProtectedRoute roles={['BORROWER']}>
             <MyReservationsPage />
           </ProtectedRoute>
         }
@@ -123,7 +134,7 @@ function AppRoutes() {
       <Route
         path="/librarian/items/new"
         element={
-          <ProtectedRoute roles={['LIBRARIAN', 'ADMIN']}>
+          <ProtectedRoute roles={['LIBRARIAN']}>
             <CreateItemPage />
           </ProtectedRoute>
         }
@@ -131,7 +142,7 @@ function AppRoutes() {
       <Route
         path="/librarian/reservations"
         element={
-          <ProtectedRoute roles={['LIBRARIAN', 'ADMIN']}>
+          <ProtectedRoute roles={['LIBRARIAN']}>
             <LibrarianReservationsPage />
           </ProtectedRoute>
         }
@@ -144,8 +155,24 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to="/catalog" replace />} />
-      <Route path="*" element={<Navigate to="/catalog" replace />} />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute roles={['ADMIN']}>
+            <AdminUsersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/delete"
+        element={
+          <ProtectedRoute roles={['ADMIN']}>
+            <DeleteUserPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="*" element={<HomeRedirect />} />
     </Routes>
   );
 }
