@@ -87,13 +87,13 @@ export function ItemDetailPage() {
     fetchItem();
   }, [fetchItem]);
 
-  const handleReserve = async () => {
+  const handleReserve = async (copyId?: string) => {
     if (!item) return;
     setActionLoading(true);
     setActionError(null);
     setActionSuccess(null);
     try {
-      await api.post("/reservations", { itemId: item.id });
+      await api.post("/reservations", { itemId: item.id, copyId });
       setActionSuccess(
         'Reservation created successfully. Check "My Reservations" to track its status.',
       );
@@ -264,28 +264,20 @@ export function ItemDetailPage() {
                           Return
                         </Button>
                       ) : (
-                        <Button onClick={handleReserve} loading={actionLoading}>
+                        <Button
+                          onClick={() => handleReserve()}
+                          loading={actionLoading}
+                        >
                           <Bookmark className="h-4 w-4" />
                           Reserve online item
                         </Button>
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <Button
-                        onClick={handleReserve}
-                        loading={actionLoading}
-                        disabled={!available}
-                      >
-                        <Bookmark className="h-4 w-4" />
-                        Reserve this item
-                      </Button>
-                      <span className="text-xs text-ink-400">
-                        {available
-                          ? "You will be placed in the reservation queue."
-                          : "Currently unavailable — reserving will place you in the queue."}
-                      </span>
-                    </div>
+                    <p className="text-sm text-ink-500">
+                      Choose a copy below to reserve it, or join the waitlist
+                      for one that's checked out.
+                    </p>
                   )}
                 </div>
               )}
@@ -324,17 +316,40 @@ export function ItemDetailPage() {
                           </td>
                           {isBorrower && (
                             <td className="py-2.5">
-                              {copy.status === "AVAILABLE" && (
+                              {!myReservation &&
+                                copy.status === "AVAILABLE" && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleReserve(copy.id)}
+                                    loading={actionLoading}
+                                  >
+                                    <Bookmark className="h-3.5 w-3.5" />
+                                    Reserve
+                                  </Button>
+                                )}
+                              {!myReservation && copy.status === "BORROWED" && (
                                 <Button
                                   size="sm"
                                   variant="secondary"
-                                  onClick={() => handleReturn(copy.id)}
+                                  onClick={() => handleReserve(copy.id)}
                                   loading={actionLoading}
                                 >
-                                  <Undo2 className="h-3.5 w-3.5" />
-                                  Return
+                                  <Bookmark className="h-3.5 w-3.5" />
+                                  Join waitlist
                                 </Button>
                               )}
+                              {myReservation?.copyId === copy.id &&
+                                myReservation.status === "ACTIVE" && (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => handleReturn(copy.id)}
+                                    loading={actionLoading}
+                                  >
+                                    <Undo2 className="h-3.5 w-3.5" />
+                                    Return
+                                  </Button>
+                                )}
                             </td>
                           )}
                         </tr>
