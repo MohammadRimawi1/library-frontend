@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { itemTypeLabels, isPhysical, isOnline, formatDate } from "@/lib/format";
-import type { LibraryItem, Copy } from "@/types";
+import type { LibraryItem, Copy, Reservation } from "@/types";
 
 function copyStatusBadge(status: Copy["status"]) {
   switch (status) {
@@ -38,6 +38,7 @@ export function ItemDetailPage() {
   const isBorrower = hasRole("BORROWER");
 
   const [item, setItem] = useState<LibraryItem | null>(null);
+  const [myReservation, setMyReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -51,6 +52,20 @@ export function ItemDetailPage() {
     try {
       const data = await api.get<LibraryItem>(`/library-items/${id}`);
       setItem(data);
+
+      if (isBorrower) {
+        try {
+          const myReservations = await api.get<Reservation[]>("/reservations");
+          const active = myReservations.find(
+            (r) =>
+              r.itemId === id &&
+              (r.status === "ACTIVE" || r.status === "PENDING"),
+          );
+          setMyReservation(active ?? null);
+        } catch {
+          setMyReservation(null);
+        }
+      }
     } catch (err) {
       if (err instanceof ApiRequestError) {
         if (err.status === 404) {
@@ -239,18 +254,21 @@ export function ItemDetailPage() {
 
                   {isOnline(item.type) ? (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <Button onClick={handleReserve} loading={actionLoading}>
-                        <Bookmark className="h-4 w-4" />
-                        Reserve online item
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleReturn()}
-                        loading={actionLoading}
-                      >
-                        <Undo2 className="h-4 w-4" />
-                        Return
-                      </Button>
+                      {myReservation?.status === "ACTIVE" ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleReturn()}
+                          loading={actionLoading}
+                        >
+                          <Undo2 className="h-4 w-4" />
+                          Return
+                        </Button>
+                      ) : (
+                        <Button onClick={handleReserve} loading={actionLoading}>
+                          <Bookmark className="h-4 w-4" />
+                          Reserve online item
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
