@@ -1,8 +1,19 @@
-import { type ReactNode, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, LogOut, Menu, X, Bookmark, LayoutGrid, UserCog, PlusCircle, Users, UserX } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import type { Role } from '@/types';
+import { type ReactNode, useState } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import {
+  BookOpen,
+  LogOut,
+  Menu,
+  X,
+  Bookmark,
+  LayoutGrid,
+  UserCog,
+  PlusCircle,
+  Users,
+  UserX,
+} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import type { Role } from "@/types";
 
 interface NavItem {
   to: string;
@@ -12,26 +23,65 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/catalog', label: 'Catalog', icon: LayoutGrid, roles: ['BORROWER', 'LIBRARIAN'] },
-  { to: '/reservations', label: 'My Reservations', icon: Bookmark, roles: ['BORROWER'] },
-  { to: '/librarian/items/new', label: 'Add Item', icon: PlusCircle, roles: ['LIBRARIAN'] },
-  { to: '/librarian/reservations', label: 'Reservations', icon: BookOpen, roles: ['LIBRARIAN'] },
-  { to: '/admin', label: 'Promote & Demote', icon: UserCog, roles: ['ADMIN'] },
-  { to: '/admin/users', label: 'All Users', icon: Users, roles: ['ADMIN'] },
-  { to: '/admin/delete', label: 'Delete User', icon: UserX, roles: ['ADMIN'] },
+  {
+    to: "/catalog",
+    label: "Catalog",
+    icon: LayoutGrid,
+    roles: ["BORROWER", "LIBRARIAN"],
+  },
+  {
+    to: "/reservations",
+    label: "My Reservations",
+    icon: Bookmark,
+    roles: ["BORROWER"],
+  },
+  {
+    to: "/librarian/items/new",
+    label: "Add Item",
+    icon: PlusCircle,
+    roles: ["LIBRARIAN"],
+  },
+  {
+    to: "/librarian/reservations",
+    label: "Reservations",
+    icon: BookOpen,
+    roles: ["LIBRARIAN"],
+  },
+  { to: "/admin/users", label: "All Users", icon: Users, roles: ["ADMIN"] },
+  { to: "/admin", label: "Promote & Demote", icon: UserCog, roles: ["ADMIN"] },
+  { to: "/admin/delete", label: "Delete User", icon: UserX, roles: ["ADMIN"] },
 ];
+
+const avatarColors = [
+  "bg-forest-600",
+  "bg-terra-600",
+  "bg-ink-600",
+  "bg-amber-600",
+  "bg-sky-600",
+  "bg-rose-600",
+];
+
+function avatarColorFor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasRole, logout } = useAuth();
+  const { hasRole, logout, user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const visibleNavItems = navItems.filter((item) => !item.roles || hasRole(...item.roles));
+  const visibleNavItems = navItems.filter(
+    (item) => !item.roles || hasRole(...item.roles),
+  );
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -43,7 +93,9 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-8">
             <NavLink to="/catalog" className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-forest-600" strokeWidth={2} />
-              <span className="font-serif text-xl font-semibold text-ink-800">Athenaeum</span>
+              <span className="font-serif text-xl font-semibold text-ink-800">
+                Athenaeum
+              </span>
             </NavLink>
 
             <nav className="hidden items-center gap-1 md:flex">
@@ -55,8 +107,8 @@ export function Layout({ children }: { children: ReactNode }) {
                     to={item.to}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                       isActive(item.to)
-                        ? 'bg-forest-100 text-forest-700'
-                        : 'text-ink-500 hover:bg-paper-100 hover:text-ink-700'
+                        ? "bg-forest-100 text-forest-700"
+                        : "text-ink-500 hover:bg-paper-100 hover:text-ink-700"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -69,12 +121,18 @@ export function Layout({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 sm:flex">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-forest-600 text-sm font-semibold text-white">
-                P
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white ${avatarColorFor(user?.name ?? "?")}`}
+              >
+                {(user?.name?.[0] ?? "?").toUpperCase()}
               </div>
               <div className="text-sm">
-                <p className="font-medium text-ink-700">Preview User</p>
-                <p className="text-xs text-ink-400">borrower</p>
+                <p className="font-medium text-ink-700">
+                  {user?.name ?? "Unknown"}
+                </p>
+                <p className="text-xs text-ink-400">
+                  {user?.role?.toLowerCase() ?? ""}
+                </p>
               </div>
             </div>
             <button
@@ -91,7 +149,11 @@ export function Layout({ children }: { children: ReactNode }) {
               className="rounded-lg p-2 text-ink-600 hover:bg-paper-100 md:hidden"
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
@@ -108,8 +170,8 @@ export function Layout({ children }: { children: ReactNode }) {
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive(item.to)
-                        ? 'bg-forest-100 text-forest-700'
-                        : 'text-ink-500 hover:bg-paper-100'
+                        ? "bg-forest-100 text-forest-700"
+                        : "text-ink-500 hover:bg-paper-100"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -129,7 +191,9 @@ export function Layout({ children }: { children: ReactNode }) {
         )}
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {children}
+      </main>
     </div>
   );
 }
